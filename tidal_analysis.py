@@ -35,10 +35,27 @@ def read_tidal_data(filename):
     return df
     
 def extract_single_year_remove_mean(year, data):
-   
+    
+    #Check if the sea level and time data exists
+    if not isinstance(data.index, pd.DatetimeIndex):
+        raise ValueError("Input DataFrame must have a DatetimeIndex.")
+    if 'Sea Level' not in data.columns:
+        raise ValueError("Input DataFrame must have a 'Sea Level' column.")
+        
+    #extract data for target year to a separate dataframe
+    year_data = data[data.index.year == year].copy()
+    
+    #check that year data exists
+    if year_data.empty:
+        print(f"No data found for year {year}")
+        return pd.DataFrame(columns=['Sea Level'], index=pd.DatetimeIndex([]))
 
-    return 
-
+    annual_mean = year_data["Sea Level"].mean()
+    
+    #remove mean from year data
+    year_data['Sea Level'] = year_data['Sea Level'] - annual_mean
+    
+    return year_data[['Sea Level']]
 
 def extract_section_remove_mean(start, end, data):
 
@@ -67,23 +84,6 @@ def get_longest_contiguous_data(data):
 
     return 
 
-if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(
-                     prog="UK Tidal analysis",
-                     description="Calculate tidal constiuents and RSL from tide gauge data",
-                     epilog="Copyright 2024, Jon Hill"
-                     )
-
-    parser.add_argument("directory",
-                    help="the directory containing txt files with data")
-    parser.add_argument('-v', '--verbose',
-                    action='store_true',
-                    default=False,
-                    help="Print progress")
-
-    args = parser.parse_args()
-    dirname = args.directory
-    verbose = args.verbose   
 
 

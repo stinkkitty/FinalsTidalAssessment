@@ -7,6 +7,8 @@ import pandas as pd
 import numpy as np
 
 def read_tidal_data(filename):
+    
+    #Make sure file exists
     if not os.path.exists(filename):
         raise FileNotFoundError(f"The file '{filename}' was not found")
     
@@ -24,6 +26,7 @@ def read_tidal_data(filename):
         
         df["ASLVBG02"] = df["ASLVBG02"].astype(str).str.extract(r"([-+]?[0-9]*\.?[0-9]+)").astype(float)
 
+        #replace dodgy values with NaN
         df["ASLVBG02"] = df["ASLVBG02"].replace(-99.0, np.nan)       
     
     except Exception as e:

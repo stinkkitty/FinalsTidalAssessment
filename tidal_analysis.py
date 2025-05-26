@@ -61,13 +61,34 @@ def extract_single_year_remove_mean(year, data):
     return year_data[['Sea Level']]
 
 def extract_section_remove_mean(start, end, data):
-
-
-    return 
+    
+    #Convert start and end date to a pandas timestamp
+    start_ts = pd.to_datetime(start)
+    end_ts = pd.to_datetime(end)
+    
+    #copy intented section to a separate dataframe
+    section_data = data.loc[start_ts:end_ts].copy()
+    
+    #Check if section exists
+    if section_data.empty:
+        print('No data found from {start} to {end}')
+        return pd.DataFrame(columns=['Sea Level'], index = pd.DatetimeIndex([]))
+    
+    #Check if data is numeric
+    if not pd.api.types.is_numeric_dtype(section_data['Sea Level']):
+        section_data["Sea Level"] = pd.to_numeric(section_data['Sea Level'], errors = 'coerce')
+        
+    #Calculate mean for section
+    section_mean = section_data["Sea Level"].mean()
+    
+    #remove mean
+    section_data['Sea Level'] = section_data['Sea Level'] - section_mean
+    
+    return section_data[["Sea Level"]] 
 
 
 def join_data(data1, data2):
-
+    
     return 
 
 

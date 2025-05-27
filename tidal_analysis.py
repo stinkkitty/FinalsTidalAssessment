@@ -124,9 +124,41 @@ def tidal_analysis(data, constituents, start_datetime):
 
 
 def get_longest_contiguous_data(data):
-
-
-    return 
+    
+    #check if input data exists
+    if data.empty or data['Sea Level'].isnull().all():
+        return pd.DataFrame(columns=['Sea Level'], index=pd.DatetimeIndex([]))
+    
+    #pull our valid sea level values
+    is_valid_value = data['Sea Level'].notnull()
+    temp_series = data['Sea Level'][is_valid_value]
+    
+    #check if valid data exists
+    if temp_series.empty:
+        return pd.DataFrame(columns=['Sea Level'], index=pd.DatetimeIndex([]))
+    
+    #make sure continuous hourly data exists i.e. data not more than 1hr apart
+    time_diffs = temp_series.index.to_series().diff() #calculate time difference
+    expected_interval = pd.Timedelta('1 hour')
+    tolerance = pd.Timedelta('1 minute') # Allow for slight variations
+    
+    #look for new contiguous block
+    new_block_starts = (time_diffs.isnull()) | (time_diffs > (expected_interval + tolerance))
+    
+    block_ids = new_block_starts.cumsum()
+    block_lengths = temp_series.groupby(block_ids).size()
+    
+    #no contiguous data
+    if block_lengths.empty:
+        return pd.DataFrame(columns=['Sea Level'], index=pd.DatetimeIndex([]))
+    
+    longest_block_id = block_lengths.idxmax()
+    aligned_block_ids = pd.Series(block_ids.values, index=temp_series.index).reindex(data.index, fill_value=np.nan)
+    
+    #extract only the dataframe with the longest block
+    longest_segment_df = data[aligned_block_ids == longest_block_id].copy()
+    
+    return longest_segment_df[['Sea Level']]
 
 
 

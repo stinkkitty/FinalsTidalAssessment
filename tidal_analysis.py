@@ -5,6 +5,9 @@ import argparse
 import os
 import pandas as pd
 import numpy as np
+import uptide
+import pytz
+import datetime
 
 def read_tidal_data(filename):
     
@@ -37,6 +40,7 @@ def read_tidal_data(filename):
     
     return df
     
+
 def extract_single_year_remove_mean(year, data):
     
     #Check if the sea level and time data exists
@@ -59,6 +63,7 @@ def extract_single_year_remove_mean(year, data):
     year_data['Sea Level'] = year_data['Sea Level'] - annual_mean
     
     return year_data[['Sea Level']]
+
 
 def extract_section_remove_mean(start, end, data):
     
@@ -89,19 +94,34 @@ def extract_section_remove_mean(start, end, data):
 
 def join_data(data1, data2):
     
-    return 
-
+    combined_data = pd.concat([data1, data2])
+    
+    #Ensure chronological order of data
+    combined_data = combined_data.sort_index()
+    
+    return combined_data[['Sea Level']]
 
 
 def sea_level_rise(data):
-
+    
                                                      
     return 
 
+
 def tidal_analysis(data, constituents, start_datetime):
+    time_data = data.index.to_numpy()
+    sea_level_data = data['Sea Level'].to_numpy()
+    tide_obj = uptide.Tides(constituents)
+    tide_obj.set_initial_time(start_datetime) #set timezone
+    
+    amplitudes_radians, phases_radians = uptide.harmonic_analysis(tide_obj, sea_level_data, time_data)
+    
+    #Convert radians to degrees
+    amplitudes_degrees = amplitudes_radians
+    phases_degrees = np.degrees(phases_radians)
+    
+    return amplitudes_degrees, phases_degrees
 
-
-    return 
 
 def get_longest_contiguous_data(data):
 

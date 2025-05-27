@@ -28,9 +28,9 @@ def read_tidal_data(filename):
         df["Date_Time"] = pd.to_datetime(df["Date"] + " " + df["Time"])
         df.set_index("Date_Time", inplace=True)
         
-        df["ASLVBG02"] = df["ASLVBG02"].astype(str).str.extract(r"([-+]?[0-9]*\.?[0-9]+)").astype(float)
-
         #replace dodgy values with NaN
+        df["ASLVBG02"] = df["ASLVBG02"].astype(str).str.extract(r"([-+]?[0-9]*\.?[0-9]+)").astype(float)
+        df["ASLVBG02"] = pd.to_numeric(df["ASLVBG02"], errors='coerce')
         df["ASLVBG02"] = df["ASLVBG02"].replace(-99.0, np.nan)       
     
     except Exception as e:
@@ -175,5 +175,22 @@ def get_longest_contiguous_data(data):
     return longest_segment_df[['Sea Level']]
 
 
+if __name__ == '__main__':
 
+    parser = argparse.ArgumentParser(
+                     prog="UK Tidal analysis",
+                     description="Calculate tidal constiuents and RSL from tide gauge data",
+                     epilog="Copyright 2024, Jon Hill"
+                     )
+
+    parser.add_argument("directory",
+                    help="the directory containing txt files with data")
+    parser.add_argument('-v', '--verbose',
+                    action='store_true',
+                    default=False,
+                    help="Print progress")
+
+    args = parser.parse_args()
+    dirname = args.directory
+    verbose = args.verbose
 

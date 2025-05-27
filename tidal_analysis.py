@@ -8,6 +8,7 @@ import numpy as np
 import uptide
 import pytz
 import datetime
+from scipy.stats import linregress
 
 def read_tidal_data(filename):
     
@@ -104,8 +105,21 @@ def join_data(data1, data2):
 
 def sea_level_rise(data):
     
-                                                     
-    return 
+    annual_mean_sea_level = data['Sea Level'].resample('YE').mean().dropna()
+    
+    #Check if ther is enough data to calculate sea level rise
+    if len(annual_mean_sea_level) < 2:
+        raise ValueError("Not enough valid annual mean data points")
+    
+    #Setting x- and y-axis for regression
+    x_years = annual_mean_sea_level.index.year.to_numpy() #convert date to numeric
+    y_sea_level = annual_mean_sea_level.to_numpy()
+    slope, intercept, r_value, p_value, stderr = linregress(x_years, y_sea_level)
+    
+    #convert units to mm per year
+    sea_level_rise_mm_per_year = slope*1000
+    
+    return sea_level_rise_mm_per_year
 
 
 def tidal_analysis(data, constituents, start_datetime):
